@@ -29,6 +29,10 @@ public:
 
 	//static void MoveBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int xOffset);
 
+	static bool CanBrickMoveLeft(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]);
+
+	static bool CanBrickMoveRight(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]);
+
 	//Individual Moves
 	static void MoveBrickLeft(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]);
 

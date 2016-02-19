@@ -10,7 +10,8 @@ class AIMain
 {
 private:
 	int* _score;
-	int _movementArray[3]; //{ Rotations, Left Moves, Right Moves } left and right cannot both be above 0
+	int _movementArray[2]; //{Translations, Rotations}
+	int _bestStateScore = INT_MIN;
 	bool _gameBoard[BOARD_WIDTH][BOARD_HEIGHT];
 public:
 	AIMain(int* score);
@@ -20,6 +21,7 @@ public:
 	void UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]);
 
 	//Decision Methods
+	void GeneratePossibleMoves(Brick* activeBrick);
 	void DetermineBestMove(Brick* activeBrick);
 
 	//Movement Methods

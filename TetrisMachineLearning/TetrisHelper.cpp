@@ -154,48 +154,50 @@ void TetrisHelper::PopulateBrickQueue(std::queue<Brick*>* queue, Texture* tex)
 	}
 }
 
-/*void TetrisHelper::MoveBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int xOffset)
-{
-	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
-	{
-		if (activeBrick->GetSpriteXPos(i) + xOffset < 0 || activeBrick->GetSpriteXPos(i) + xOffset > 9 || gameBoard[activeBrick->GetSpriteXPos(i) + xOffset][activeBrick->GetSpriteYPos(i)] == true)
-		{
-			return;
-		}
-	}
-	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
-	{
-		activeBrick->SetSpriteBoardPos(i, xOffset, 0);
-	}
-}*/
-
-void TetrisHelper::MoveBrickLeft(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
+bool TetrisHelper::CanBrickMoveLeft(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
 {
 	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
 	{
 		if (activeBrick->GetSpriteXPos(i) + -1 < 0 || activeBrick->GetSpriteXPos(i) + -1 > 9 || gameBoard[activeBrick->GetSpriteXPos(i) + -1][activeBrick->GetSpriteYPos(i)] == true)
 		{
-			return;
+			return false;
 		}
 	}
-	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
-	{
-		activeBrick->SetSpriteBoardPos(i, -1, 0);
-	}
+	return true;
 }
 
-void TetrisHelper::MoveBrickRight(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
+bool TetrisHelper::CanBrickMoveRight(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
 {
 	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
 	{
 		if (activeBrick->GetSpriteXPos(i) + 1 < 0 || activeBrick->GetSpriteXPos(i) + 1 > 9 || gameBoard[activeBrick->GetSpriteXPos(i) + 1][activeBrick->GetSpriteYPos(i)] == true)
 		{
-			return;
+			return false;
 		}
 	}
-	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+	return true;
+}
+
+void TetrisHelper::MoveBrickLeft(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
+{
+
+	if (CanBrickMoveLeft(activeBrick, gameBoard))
 	{
-		activeBrick->SetSpriteBoardPos(i, 1, 0);
+		for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+		{
+			activeBrick->SetSpriteBoardPos(i, -1, 0);
+		}
+	}
+}
+
+void TetrisHelper::MoveBrickRight(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
+{
+	if (CanBrickMoveRight(activeBrick, gameBoard))
+	{
+		for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+		{
+			activeBrick->SetSpriteBoardPos(i, 1, 0);
+		}
 	}
 }
 

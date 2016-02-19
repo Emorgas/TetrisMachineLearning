@@ -433,6 +433,7 @@ void Draw()
 	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
 	{
 		_window.draw(_activeBrick->GetSpriteArray()[i]);
+		_window.draw(_activeBrick->GetGhostSpriteArray()[i]);
 	}
 
 	for (int i = 0; i < _brickList.size(); i++)
