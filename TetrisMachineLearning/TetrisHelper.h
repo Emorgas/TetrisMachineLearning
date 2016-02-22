@@ -38,10 +38,10 @@ public:
 
 	static void MoveBrickRight(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]);
 
-	static void HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score);
+	static void HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, bool isTrueDrop = true);
 
 	//AI Control Method
-	static void PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, int moveArray[3]);
+	static void PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, int moveArray[2]);
 
 };
 

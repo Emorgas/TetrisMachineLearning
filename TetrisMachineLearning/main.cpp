@@ -8,6 +8,7 @@
 #include "Brick.h"
 #include "TetrisHelper.h"
 #include "Errors.h"
+#include "AIMain.h"
 
 using namespace sf;
 
@@ -55,6 +56,9 @@ Clock _fallTimer;
 Clock _repeatTimer;
 bool _checkLockTime = false;
 Brick* _activeBrick;
+
+//AI Variables
+AIMain* _AIController;
 
 void InitAndLoad()
 {
@@ -107,6 +111,8 @@ void InitAndLoad()
 	_nextText.setCharacterSize(20);
 	_nextText.setColor(Color::Black);
 	_nextText.setPosition(540.0f, 0.0f);
+
+	_AIController = new AIMain(&_score);
 
 	_activeBrick = new Brick(Brick::BrickType::S, &_minoTexture);
 	_activeBrick->SpriteSetup();
@@ -380,7 +386,8 @@ void Update()
 				_brickList.emplace_back(_activeBrick);
 
 				RemoveCompletedLines();
-
+				//Passing the updated game board to the AIController
+				_AIController->UpdateGameBoard(_gameBoard);
 				_activeBrick = _nextQueue.front();
 				_nextQueue.pop();
 				_activeBrick->SpriteSetup();
@@ -388,7 +395,7 @@ void Update()
 				{
 					TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
 				}
-
+				_AIController->GeneratePossibleMoves(_activeBrick);
 			}
 		}
 		switch (_nextQueue.front()->GetBrickType())
@@ -433,7 +440,6 @@ void Draw()
 	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
 	{
 		_window.draw(_activeBrick->GetSpriteArray()[i]);
-		_window.draw(_activeBrick->GetGhostSpriteArray()[i]);
 	}
 
 	for (int i = 0; i < _brickList.size(); i++)

@@ -21,27 +21,56 @@ void AIMain::UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
 			_gameBoard[w][h] = gameBoard[w][h];
 		}
 	}
+	_stateGraph.clear();
 }
 
 void AIMain::GeneratePossibleMoves(Brick* activeBrick)
 {
-	//iterate through all possible trasnlations in each possible rotation
-	if (activeBrick->GetBrickType() != Brick::BrickType::Box)
+	int maxRots = 4;
+	if (activeBrick->GetBrickType() == Brick::BrickType::Box)
 	{
-		for (int rotations = 0; rotations < 4; rotations++)
-		{
-			_movementArray[1] = rotations;
-			while (TetrisHelper::CanBrickMoveLeft(activeBrick, _gameBoard))
-			{
-				TetrisHelper::MoveBrickLeft(activeBrick, _gameBoard);
-				_movementArray[0] -= 1;
-			}
-			while (TetrisHelper::CanBrickMoveRight(activeBrick, _gameBoard))
-			{
-				//Check and evaluate position of ghost brick
-			}
-		}
+		maxRots = 1;
 	}
+	for (int rot = 0; rot < maxRots; rot++)
+	{
+		BoardState* temp = new BoardState(_gameBoard);
+		while (TetrisHelper::CanBrickMoveLeft(activeBrick, _gameBoard))
+		{
+			TetrisHelper::MoveBrickLeft(activeBrick, _gameBoard); //At the beginning of a rotation we move the brick to the left
+			_movementArray[1] -= 1;
+		}
+		//Perform drop for leftmost position;
+		TetrisHelper::HardDropBrick(activeBrick, temp->GetBoard(), _score, false);
+		for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+		{
+			temp->GetBoard()[activeBrick->GetSpriteXPos(i)][activeBrick->GetSpriteYPos(i)] = true;
+		}
+		_stateGraph.emplace_back(temp);
+		activeBrick->ResetYPos();
+
+		//Begin looping through all positions one step right at a time
+		while (TetrisHelper::CanBrickMoveRight(activeBrick, _gameBoard))
+		{
+			//Move the brick one step to the right
+			TetrisHelper::MoveBrickRight(activeBrick, _gameBoard);
+			//setup new board state for the graph
+			temp = new BoardState(_gameBoard);
+			//Perform 'false' hard drop
+			TetrisHelper::HardDropBrick(activeBrick, temp->GetBoard(), _score, false);
+			//For each mino in the brick set the position on the board stored in temp
+			for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+			{
+				temp->GetBoard()[activeBrick->GetSpriteXPos(i)][activeBrick->GetSpriteYPos(i)] = true;
+			}
+			//Place temp into the array
+			_stateGraph.emplace_back(temp);
+			//reset the Y position of the active brick
+			activeBrick->ResetYPos();
+		}
+		activeBrick->ResetXPos();
+	}
+
+	std::cout << "Number of possible moves: " << _stateGraph.size();
 }
 
 void AIMain::DetermineBestMove(Brick* activeBrick)

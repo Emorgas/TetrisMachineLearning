@@ -48,8 +48,6 @@ Brick::Brick(BrickType type, Texture* tex)
 			fatalError("Error in brick creation! Invalid Brick type: " + brickType);
 			break;
 		}
-		ghostBrickMinos[i].setTexture(*texture);
-		ghostBrickMinos[i].setColor(Color(15, 15, 15, 0.5));
 		minos[i].setTexture(*texture);
 		spriteXBoardPos[i] = 0;
 		spriteYBoardPos[i] = 0;
@@ -114,20 +112,14 @@ void Brick::SpriteSetup()
 	default:
 		fatalError("Error in sprite setup! Invalid brick type: " + brickType);
 		break;
-
-		SetupGhostBrick();
 	}
-}
 
-void Brick::SetupGhostBrick()
-{
+	//Setup default mino positioning to allow for 'false' hard drops
 	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
 	{
-		ghostBrickMinos[i].setPosition(minos[i].getPosition());
+		defaultXPos[i] = spriteXBoardPos[i];
+		defaultYPos[i] = spriteYBoardPos[i];
 	}
-
-
-
 }
 
 bool Brick::IsBrickEmpty()
@@ -164,6 +156,24 @@ void Brick::SetSpriteBoardPos(int index, int xOffset, int yOffset)
 {
 	SetSpriteXPos(index, xOffset);
 	SetSpriteYPos(index, yOffset);
+}
+
+void Brick::ResetXPos()
+{
+	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+	{
+		int offset = defaultXPos[i] - spriteXBoardPos[i];
+		SetSpriteXPos(i, offset);
+	}
+}
+
+void Brick::ResetYPos()
+{
+	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+	{
+		int offset = defaultYPos[i] - spriteYBoardPos[i];
+		SetSpriteYPos(i, offset);
+	}
 }
 
 void Brick::RemoveSprite(int index)
@@ -398,17 +408,6 @@ void Brick::BrickFall()
 	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
 	{
 		SetSpriteBoardPos(i, 0, -1);
-	}
-}
-
-void Brick::GhostBrickFall()
-{
-	///HERE///
-	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
-	{
-		float xPos = (BOARD_X_OFFSET + spriteXBoardPos[index]) * 36.0f;
-		float yPos = 684 - (spriteYBoardPos[index] * 36.0f);
-		minos[index].setPosition(xPos, yPos);
 	}
 }
 

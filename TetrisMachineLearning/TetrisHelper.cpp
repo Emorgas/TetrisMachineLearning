@@ -200,8 +200,8 @@ void TetrisHelper::MoveBrickRight(Brick* activeBrick, bool gameBoard[BOARD_WIDTH
 		}
 	}
 }
-
-void TetrisHelper::HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score)
+//Last parameter allows a hard drop to be simulated without locking the piece; the default value is true so a 'false' hard drop must be specified
+void TetrisHelper::HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, bool isTrueDrop)
 {
 	int lineCounter = 0;
 	while (CheckFallCollisions(activeBrick, gameBoard) != true)
@@ -209,11 +209,14 @@ void TetrisHelper::HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH]
 		activeBrick->BrickFall();
 		lineCounter++;
 	}
-	activeBrick->LockBrick();
-	*score += lineCounter * 2;
+	if (isTrueDrop)
+	{
+		activeBrick->LockBrick();
+		*score += lineCounter * 2;
+	}
 }
 
-void TetrisHelper::PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, int moveArray[3])
+void TetrisHelper::PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, int moveArray[2])
 {
 	//MoveArray represents the 3 actions available to the AI and the number of times each should be completed, they are stored in the format {rotations, left moves, right moves}
 
@@ -223,16 +226,16 @@ void TetrisHelper::PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_
 		activeBrick->RotateBrick(Brick::RotationType::Clockwise, gameBoard);
 	}
 
-	//Perform left movements
-	for (int l = 0; l < moveArray[1]; l++)
+	//Perform Movement
+	if (moveArray[1] > 0)
 	{
-		MoveBrickLeft(activeBrick, gameBoard);
+		for (int l = 0; l < moveArray[1]; l++)
+			MoveBrickRight(activeBrick, gameBoard);
 	}
-
-	//Perfrom right movements
-	for (int r = 0; r < moveArray[2]; r++)
+	else if (moveArray[1] < 0)
 	{
-		MoveBrickRight(activeBrick, gameBoard);
+		for (int r = 0; r > moveArray[1]; r--)
+			MoveBrickLeft(activeBrick, gameBoard);
 	}
 
 	//Always end movements with a hard drop

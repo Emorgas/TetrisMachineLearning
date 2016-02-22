@@ -35,11 +35,12 @@ public:
 	};
 private:
 	Sprite minos[NUMBER_OF_MINOS_IN_BRICK];
-	Sprite ghostBrickMinos[NUMBER_OF_MINOS_IN_BRICK];
 	float lastXPos[NUMBER_OF_MINOS_IN_BRICK];
 	float lastYPos[NUMBER_OF_MINOS_IN_BRICK];
 	float lastXBoardPos[NUMBER_OF_MINOS_IN_BRICK];
 	float lastYBoardPos[NUMBER_OF_MINOS_IN_BRICK];
+	float defaultXPos[NUMBER_OF_MINOS_IN_BRICK];
+	float defaultYPos[NUMBER_OF_MINOS_IN_BRICK];
 	BrickType brickType;
 	DirectionType facing;
 	int spriteXBoardPos[NUMBER_OF_MINOS_IN_BRICK];
@@ -52,12 +53,11 @@ public:
 	Brick();
 	Brick(BrickType type, Texture* tex);
 	void SpriteSetup();
-	void GhostBrickFall();
+
 
 	void LockBrick();
 	bool IsLocked() { return isLocked; }
 	Sprite* GetSpriteArray() { return minos; }
-	Sprite* GetGhostSpriteArray() { return ghostBrickMinos; }
 	int GetSpriteXPos(int index) { return spriteXBoardPos[index]; }
 	int GetSpriteYPos(int index) { return spriteYBoardPos[index]; }
 	BrickType GetBrickType() { return brickType; }
@@ -68,9 +68,10 @@ public:
 	void SetSpriteXPos(int index, int offset);
 	void SetSpriteYPos(int index, int offset);
 	void SetSpriteBoardPos(int index, int xOffset, int yOffset);
+	void ResetXPos();
+	void ResetYPos();
 
 	void BrickFall();
-	void PositionGhostBrick();
 
 	void RemoveSprite(int index);
 	void RotateBrick(RotationType type, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]); //Take in board pointer
