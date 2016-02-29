@@ -18,4 +18,5 @@ BoardState::BoardState(bool board[BOARD_WIDTH][BOARD_HEIGHT])
 
 BoardState::~BoardState()
 {
+	delete[] _gameBoard;
 }

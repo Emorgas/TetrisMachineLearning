@@ -32,6 +32,6 @@ public:
 	int CalculateSurfaceRoughness(BoardState* state);
 	void DetermineBestMove(Brick* activeBrick);
 
-	//Movement Methods
+	void SetEvaluationModifiers(float values[4]);
 };
 

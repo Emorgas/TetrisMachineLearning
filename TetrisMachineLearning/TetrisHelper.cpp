@@ -134,7 +134,6 @@ void TetrisHelper::PopulateBrickQueue(std::queue<Brick*>* queue, Texture* tex)
 
 	while (tempQueue.size() > 0)
 	{
-		srand(time(NULL));
 		int rng = rand() % tempQueue.size();
 		std::vector<Brick*>::iterator iter = tempQueue.begin();
 		queue->push(tempQueue.at(rng));

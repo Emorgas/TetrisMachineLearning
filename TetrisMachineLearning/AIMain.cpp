@@ -83,7 +83,7 @@ void AIMain::GeneratePossibleMoves(Brick* activeBrick)
 		activeBrick->ResetXPos();
 	}
 
-	std::cout << "Number of possible moves: " << _stateGraph.size() << std::endl;
+	//std::cout << "Number of possible moves: " << _stateGraph.size() << std::endl;
 
 	DetermineBestMove(activeBrick);
 }
@@ -95,9 +95,6 @@ void AIMain::EvaluateState(BoardState* state)
 	rowsCleared = CalculateRowsCleared(state);
 
 	closedHoles = CalculateClosedHoles(state);
-
-
-
 
 	boardMaxHeight = CalculateBoardMaxHeight(state);
 
@@ -209,7 +206,7 @@ int AIMain::CalculateClosedHoles(BoardState* state)
 		}
 	}
 
-	std::cout << "Holes: " << numberOfClosedHoles << std::endl;
+	//std::cout << "Holes: " << numberOfClosedHoles << std::endl;
 
 	return numberOfClosedHoles;
 }
@@ -286,3 +283,10 @@ void AIMain::DetermineBestMove(Brick* activeBrick)
 	TetrisHelper::PerformMoveSequence(activeBrick, _gameBoard, _score, _movementArray);
 }
 
+void AIMain::SetEvaluationModifiers(float values[4])
+{
+	_rowsClearedMod = values[0];
+	_closedHolesMod = values[1];
+	_boardMaxHeightMod = values[2];
+	_surfaceRoughnessMod = values[3];
+}

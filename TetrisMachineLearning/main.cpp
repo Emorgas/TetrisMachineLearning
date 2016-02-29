@@ -9,7 +9,7 @@
 #include "TetrisHelper.h"
 #include "Errors.h"
 #include "AIMain.h"
-
+#include "GAMain.h"
 using namespace sf;
 
 enum GameState
@@ -38,6 +38,8 @@ Text _gameOverText;
 Text _brickCountText;
 Text _linesClearedText;
 Text _levelText;
+Text _generationNumberText;
+Text _chromosomeNumberText;
 
 //Gameplay Variables
 bool _gameBoard[BOARD_WIDTH][BOARD_HEIGHT];
@@ -57,11 +59,20 @@ Clock _repeatTimer;
 bool _checkLockTime = false;
 Brick* _activeBrick;
 
+//Genetic Algorithm Variables
+int _chromosome = 0;
+int _generation = 0;
+int _gameNumber = 0;
+int _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0, 0, 0, 0, 0 };
+GAMain* _GAController;
+
 //AI Variables
 AIMain* _AIController;
 
 void InitAndLoad()
 {
+	srand((int)time(NULL));
+
 	//Window Variables
 	_state = GameState::Playing;
 	_videoMode.height = SCREEN_HEIGHT;
@@ -112,11 +123,29 @@ void InitAndLoad()
 	_nextText.setColor(Color::Black);
 	_nextText.setPosition(540.0f, 0.0f);
 
+	_chromosomeNumberText.setFont(_gameFont);
+	_chromosomeNumberText.setString("Chromosome #: " + std::to_string(_chromosome));
+	_chromosomeNumberText.setCharacterSize(20);
+	_chromosomeNumberText.setColor(Color::Black);
+	_chromosomeNumberText.setPosition(0.0f, 235.0f);
+
+	_generationNumberText.setFont(_gameFont);
+	_generationNumberText.setString("Generation #: " + std::to_string(_generation));
+	_generationNumberText.setCharacterSize(20);
+	_generationNumberText.setColor(Color::Black);
+	_generationNumberText.setPosition(0.0f, 255.0f);
+
 	_AIController = new AIMain(&_score);
 
-	_activeBrick = new Brick(Brick::BrickType::S, &_minoTexture);
-	_activeBrick->SpriteSetup();
+	_GAController = new GAMain();
+	_GAController->InitialisePopulation();
+
+	_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles);
+
 	TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
+	_activeBrick = _nextQueue.front();
+	_nextQueue.pop();
+	_activeBrick->SpriteSetup();
 	_AIController->UpdateGameBoard(_gameBoard);
 	_AIController->GeneratePossibleMoves(_activeBrick);
 
@@ -132,6 +161,93 @@ void InitAndLoad()
 		TetrisHelper::_brickFallTime = 1.0f;
 		TetrisHelper::_defaultBrickFallTime = 1.0f;
 	}
+}
+
+void ResetGame()
+{
+	//Genetic Algorithm Settings
+	_gameScores[_gameNumber] = _score;
+	_gameNumber++;
+	if (_gameNumber >= GA_PLAYS_PER_CHROMOSME)					 //If we have played enough games with this chromosome
+	{
+		_gameNumber = 0;
+		int temp = 0;
+		for (int i = 0; i < GA_PLAYS_PER_CHROMOSME; i++)
+		{
+			temp += _gameScores[i];					 //Sum and average the scores of each game played
+		}
+		temp /= GA_PLAYS_PER_CHROMOSME;
+		_GAController->SetChromosomeFitness(_chromosome, temp); //Store the average value as the fitness of this chromosome
+		std::cout << "Chromosome: " << _chromosome << " Average Score: " << temp << std::endl;
+
+		_chromosome++;											//Move on to the next chromosome
+		for (int i = 0; i < GA_PLAYS_PER_CHROMOSME; i++)
+		{
+			_gameScores[i] = 0;
+		}
+
+		if (_chromosome >= GA_POPSIZE)							//if we have played all chromosomes in the population
+		{
+
+			_GAController->BeginNewGeneration();				//Call evaluate population which will then proceed to compare all chromosomes
+																//And generate children from the parent generation
+			_chromosome = 0;
+			_generation++;										//Reset the chromosome counter and increment the generation number
+		}
+		_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles); //Set the Evaluation Modifiers from the new chromosome
+	}
+
+	//Genetic Algorithm Settings
+	for (int y = 0; y < BOARD_HEIGHT; y++)
+	{
+		for (int x = 0; x < BOARD_WIDTH; x++)
+		{
+			_gameBoard[x][y] = false;
+		}
+	}
+	_score = 0;
+	_level = 1;
+	_lines = 0;
+
+	for (int i = 0; i < NUMBER_OF_BRICK_TYPES; i++)
+	{
+		_brickCount[i] = 0;
+	}
+	_highestLineRemoved = 0;
+	_lowestLineRemoved = 24;
+	for (int i = 0; i < 4; i++)
+	{
+		_linesToBeRemoved[i] = BOARD_HEIGHT - 1;
+	}
+	_linesRemoved = 0;
+	_brickList.clear();
+	std::queue<Brick*> empty;
+	std::swap(_nextQueue, empty);
+	bool _checkLockTime = false;
+
+	TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
+	_activeBrick = _nextQueue.front();
+	_nextQueue.pop();
+	_activeBrick->SpriteSetup();
+
+	TetrisHelper::_brickFallTime = pow((0.8f - ((_level - 1) * 0.007)), (_level - 1));
+	TetrisHelper::_defaultBrickFallTime = pow((0.8f - ((_level - 1) * 0.007)), (_level - 1));
+
+	_scoreText.setString("Score: " + std::to_string(_score));
+	_linesClearedText.setString("Lines Cleared: 0");
+	_levelText.setString("Level: 1");
+	_brickCountText.setString("Box: 0\nLine: 0\nZ: 0\nS: 0\nL: 0\nJ:0 \nT: 0\n");
+	_gameOverText.setString("GAME OVER! FINAL SCORE: " + std::to_string(_score));
+	_nextText.setString("Next Piece Type: ");
+
+
+	_state = GameState::Playing;
+
+	_AIController->UpdateGameBoard(_gameBoard);
+	_AIController->GeneratePossibleMoves(_activeBrick);
+
+
+
 }
 
 extern void QuitProgram()
@@ -162,10 +278,10 @@ void LevelUp()
 	TetrisHelper::_defaultBrickFallTime = pow((0.8f - ((_level - 1) * 0.007)), (_level - 1));
 	_levelText.setString("Level: " + std::to_string(_level));
 
-	if (_level == 15)
-	{
-		_state = GameState::GameWin;
-	}
+	/*	if (_level == 15)
+		{
+			_state = GameState::GameWin;
+		}*/
 }
 
 void LevelUpCheck()
@@ -431,7 +547,9 @@ void Update()
 
 	if (_state == GameState::GameOver)
 	{
+		//Output game scores here
 
+		ResetGame();
 	}
 }
 
@@ -476,6 +594,8 @@ void Draw()
 	_window.draw(_brickCountText);
 	_window.draw(_linesClearedText);
 	_window.draw(_levelText);
+	_window.draw(_chromosomeNumberText);
+	_window.draw(_generationNumberText);
 
 	if (_state == GameState::GameOver)
 	{

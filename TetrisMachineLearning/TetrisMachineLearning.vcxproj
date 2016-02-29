@@ -163,6 +163,7 @@
     <ClCompile Include="BoardState.cpp" />
     <ClCompile Include="Brick.cpp" />
     <ClCompile Include="Errors.cpp" />
+    <ClCompile Include="GAMain.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TetrisHelper.cpp" />
   </ItemGroup>
@@ -172,6 +173,7 @@
     <ClInclude Include="Brick.h" />
     <ClInclude Include="Definitions.h" />
     <ClInclude Include="Errors.h" />
+    <ClInclude Include="GAMain.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="TetrisHelper.h" />
   </ItemGroup>
