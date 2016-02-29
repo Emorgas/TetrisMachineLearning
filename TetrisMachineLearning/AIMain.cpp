@@ -26,6 +26,10 @@ void AIMain::UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
 			_gameBoard[w][h] = gameBoard[w][h];
 		}
 	}
+	for each (BoardState* b in _stateGraph)
+	{
+		delete b;
+	}
 	_stateGraph.clear();
 	_movementArray[0] = 0;
 	_movementArray[1] = 0;

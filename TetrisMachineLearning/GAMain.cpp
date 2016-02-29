@@ -46,6 +46,10 @@ void GAMain::GenerateChildren()
 		newPop.emplace_back(SinglePointCrossover(parent1, parent2));
 	}
 
+	for each (Chromosome* c in _population)
+	{
+		delete c;
+	}
 	_population.clear();
 	_population = newPop;
 }

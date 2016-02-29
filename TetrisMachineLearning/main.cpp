@@ -220,6 +220,12 @@ void ResetGame()
 		_linesToBeRemoved[i] = BOARD_HEIGHT - 1;
 	}
 	_linesRemoved = 0;
+
+	for each (Brick* b in _brickList)
+	{
+		delete b;
+	}
+
 	_brickList.clear();
 	std::queue<Brick*> empty;
 	std::swap(_nextQueue, empty);
