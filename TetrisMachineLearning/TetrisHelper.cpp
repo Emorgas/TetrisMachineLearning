@@ -65,7 +65,7 @@ void TetrisHelper::HandleInput(Event* gameEvent, Brick* activeBrick, bool gameBo
 		else if (gameEvent->type == Event::KeyReleased)
 		{
 			_rotateKeyPressed = false;
-			std::cout << " Rotate Key Released" << std::endl;
+			std::cout << "Rotate Key Released" << std::endl;
 		}
 		break;
 	case Keyboard::Key::Down:

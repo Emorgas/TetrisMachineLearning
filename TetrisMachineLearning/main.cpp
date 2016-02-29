@@ -117,6 +117,8 @@ void InitAndLoad()
 	_activeBrick = new Brick(Brick::BrickType::S, &_minoTexture);
 	_activeBrick->SpriteSetup();
 	TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
+	_AIController->UpdateGameBoard(_gameBoard);
+	_AIController->GeneratePossibleMoves(_activeBrick);
 
 	//Gameplay
 	if (_level > 1)
@@ -251,7 +253,7 @@ void RemoveCompletedLines()
 	_linesRemoved = 0;
 	_highestLineRemoved = 0;
 	_lowestLineRemoved = 24;
-	bool addLine = false;
+	bool removeLine = false;
 	_linesToBeRemoved[0] = 24;
 	_linesToBeRemoved[1] = 24;
 	_linesToBeRemoved[2] = 24;
@@ -266,18 +268,18 @@ void RemoveCompletedLines()
 			{
 				if (tempLineIndex != _linesToBeRemoved[x])
 				{
-					addLine = true;
+					removeLine = true;
 				}
 				else
 				{
-					addLine = false;
+					removeLine = false;
 					break;
 				}
 			}
-			if (addLine == true)
+			if (removeLine == true)
 			{
 				_linesToBeRemoved[_linesRemoved] = i;
-				addLine = false;
+				removeLine = false;
 				if (_linesToBeRemoved[_linesRemoved] > _highestLineRemoved)
 				{
 					_highestLineRemoved = _linesToBeRemoved[_linesRemoved];

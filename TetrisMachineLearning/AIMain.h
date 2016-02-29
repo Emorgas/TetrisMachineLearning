@@ -15,6 +15,7 @@ private:
 	int _bestStateScore = INT_MIN;
 	bool _gameBoard[BOARD_WIDTH][BOARD_HEIGHT];
 	std::vector<BoardState*> _stateGraph;
+	float _rowsClearedMod, _closedHolesMod, _boardMaxHeightMod, _surfaceRoughnessMod;
 public:
 	AIMain(int* score);
 	~AIMain();
@@ -24,6 +25,11 @@ public:
 
 	//Decision Methods
 	void GeneratePossibleMoves(Brick* activeBrick);
+	void EvaluateState(BoardState* state);
+	int CalculateRowsCleared(BoardState* state);
+	int CalculateClosedHoles(BoardState* state);
+	int CalculateBoardMaxHeight(BoardState* state);
+	int CalculateSurfaceRoughness(BoardState* state);
 	void DetermineBestMove(Brick* activeBrick);
 
 	//Movement Methods
