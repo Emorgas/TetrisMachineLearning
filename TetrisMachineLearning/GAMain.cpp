@@ -17,10 +17,10 @@ void GAMain::InitialisePopulation()
 	for (int i = 0; i < GA_POPSIZE; i++)
 	{
 		temp = new Chromosome();
-		temp->alleles[0] = ((float)rand() / RAND_MAX * 100.0f - 50.0f);
-		temp->alleles[1] = ((float)rand() / RAND_MAX * 100.0f - 50.0f);
-		temp->alleles[2] = ((float)rand() / RAND_MAX * 100.0f - 50.0f);
-		temp->alleles[3] = ((float)rand() / RAND_MAX * 100.0f - 50.0f);
+		temp->alleles[0] = ((float)rand() - RAND_MAX / 2);
+		temp->alleles[1] = ((float)rand() - RAND_MAX / 2);
+		temp->alleles[2] = ((float)rand() - RAND_MAX / 2);
+		temp->alleles[3] = ((float)rand() - RAND_MAX / 2);
 		temp->fitness = 0.0f;
 		_population.emplace_back(temp);
 	}
@@ -95,12 +95,19 @@ Chromosome* GAMain::SinglePointCrossover(Chromosome* p1, Chromosome* p2)
 Chromosome* GAMain::LinearRankSelection()
 {
 	int totalFitness = 0;
-	for (int i = 1; i == GA_POPSIZE; i++)
+	for (int i = 1; i != GA_POPSIZE; i++)
 	{
 		totalFitness += i;
 	}
-
-	return _population.at((int)rand() / RAND_MAX * totalFitness);
+	int chosenFitness = rand() %  totalFitness;
+	int currentFitness = 0;
+	int add = 0;
+	while (currentFitness < chosenFitness && currentFitness < totalFitness && add < GA_POPSIZE - 1)
+	{
+		currentFitness += add;
+		add++;
+	}
+	return _population.at(add);
 }
 
 void GAMain::SortPopulationByFitness()
@@ -108,7 +115,7 @@ void GAMain::SortPopulationByFitness()
 	Chromosome* temp;
 	for (int i = 0; i < GA_POPSIZE; i++)
 	{
-		for (int z = 1; z < GA_POPSIZE - 1; z++)
+		for (int z = i + 1; z < GA_POPSIZE; z++)
 		{
 			if (_population.at(i)->fitness > _population.at(z)->fitness)
 			{

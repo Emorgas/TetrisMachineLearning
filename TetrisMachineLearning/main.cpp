@@ -245,6 +245,8 @@ void ResetGame()
 	_brickCountText.setString("Box: 0\nLine: 0\nZ: 0\nS: 0\nL: 0\nJ:0 \nT: 0\n");
 	_gameOverText.setString("GAME OVER! FINAL SCORE: " + std::to_string(_score));
 	_nextText.setString("Next Piece Type: ");
+	_generationNumberText.setString("Generation #: " + std::to_string(_generation));
+	_chromosomeNumberText.setString("Chromosome #: " + std::to_string(_chromosome));
 
 
 	_state = GameState::Playing;
@@ -593,7 +595,8 @@ void Draw()
 			}
 		}
 	}*/
-
+	_generationNumberText.setString("Generation #: " + std::to_string(_generation));
+	_chromosomeNumberText.setString("Chromosome #: " + std::to_string(_chromosome));
 	_scoreText.setString("Score: " + std::to_string(_score));
 	_window.draw(_scoreText);
 	_window.draw(_nextText);
