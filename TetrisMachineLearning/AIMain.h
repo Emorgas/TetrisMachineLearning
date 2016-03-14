@@ -16,14 +16,16 @@ private:
 	bool _gameBoard[BOARD_WIDTH][BOARD_HEIGHT];
 	std::vector<BoardState*> _stateGraph;
 	float _rowsClearedMod, _closedHolesMod, _boardMaxHeightMod, _surfaceRoughnessMod;
+	Brick::BrickType _nextPiece;
 public:
-	AIMain(int* score);
+	AIMain(int* score); //Add setnext piece
 	~AIMain();
 	
 	//To be called every time a piece is locked
 	void UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]);
 
 	//Decision Methods
+	void GenerateChildren(BoardState* state, Brick* activeBrick);
 	void GeneratePossibleMoves(Brick* activeBrick);
 	void EvaluateState(BoardState* state);
 	int CalculateRowsCleared(BoardState* state);

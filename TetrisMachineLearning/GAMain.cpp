@@ -38,13 +38,19 @@ void GAMain::GenerateChildren()
 {
 	std::vector<Chromosome*> newPop;
 
-	while (newPop.size() < GA_POPSIZE)
+	while (newPop.size() < GA_POPSIZE - 1)
 	{
 		Chromosome* parent1 = LinearRankSelection();
 		Chromosome* parent2 = LinearRankSelection();
 
-		newPop.emplace_back(SinglePointCrossover(parent1, parent2));
+		newPop.emplace_back(UniformCrossover(parent1, parent2));
 	}
+	Chromosome* temp = new Chromosome();
+	temp->alleles[0] = _population.at(9)->alleles[0];
+	temp->alleles[1] = _population.at(9)->alleles[1];
+	temp->alleles[2] = _population.at(9)->alleles[2];
+	temp->alleles[3] = _population.at(9)->alleles[3];
+	newPop.emplace_back(temp); //Implementing Elitism
 
 	for each (Chromosome* c in _population)
 	{
@@ -54,10 +60,25 @@ void GAMain::GenerateChildren()
 	_population = newPop;
 }
 
+Chromosome* GAMain::UniformCrossover(Chromosome* p1, Chromosome* p2)
+{
+	Chromosome* child = new Chromosome();
+	int alelleCrossover = rand() % 4;
+
+	for (int i = 0; i < 4; i++)
+		child->alleles[i] = p1->alleles[i];
+
+	child->alleles[alelleCrossover] = p2->alleles[alelleCrossover];
+	alelleCrossover = rand() % 4;
+	child->alleles[alelleCrossover] = p2->alleles[alelleCrossover];
+	child->fitness = 0;
+	return child;
+}
+
 Chromosome* GAMain::SinglePointCrossover(Chromosome* p1, Chromosome* p2)
 {
 	Chromosome* temp = new Chromosome();
-	int crossoverPoint = (int)rand() / RAND_MAX * 2;
+	float crossoverPoint = rand() % 3;
 
 	if (crossoverPoint == 0)
 	{
@@ -107,6 +128,8 @@ Chromosome* GAMain::LinearRankSelection()
 		currentFitness += add;
 		add++;
 	}
+
+
 	return _population.at(add);
 }
 

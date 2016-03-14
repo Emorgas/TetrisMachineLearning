@@ -21,6 +21,7 @@ public:
 	void InitialisePopulation();
 	void BeginNewGeneration();
 	void GenerateChildren();
+	Chromosome* UniformCrossover(Chromosome* p1, Chromosome* p2);
 	Chromosome* SinglePointCrossover(Chromosome* p1, Chromosome* p2);
 	Chromosome* LinearRankSelection();
 	void SortPopulationByFitness();

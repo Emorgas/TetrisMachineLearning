@@ -6,11 +6,6 @@ AIMain::AIMain(int* score)
 	_score = score;
 	_movementArray[0] = 0;
 	_movementArray[1] = 0;
-
-	_rowsClearedMod = 1000.5f;
-	_closedHolesMod = -2.0f;
-	_boardMaxHeightMod = -100.5f;
-	_surfaceRoughnessMod = -1.0f;
 }
 
 AIMain::~AIMain()
@@ -33,6 +28,12 @@ void AIMain::UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
 	_stateGraph.clear();
 	_movementArray[0] = 0;
 	_movementArray[1] = 0;
+}
+
+void AIMain::GenerateChildren(BoardState* state, Brick* activeBrick)
+{
+
+
 }
 
 void AIMain::GeneratePossibleMoves(Brick* activeBrick)
@@ -104,7 +105,7 @@ void AIMain::EvaluateState(BoardState* state)
 
 	surfaceRoughness = CalculateSurfaceRoughness(state);
 
-	float score = (rowsCleared * _rowsClearedMod) + (closedHoles * _closedHolesMod) + (boardMaxHeight * _boardMaxHeightMod) + (surfaceRoughness * _surfaceRoughnessMod);
+	float score = (rowsCleared * _rowsClearedMod) + (boardMaxHeight * _boardMaxHeightMod) +(closedHoles * _closedHolesMod) +(boardMaxHeight * _boardMaxHeightMod);// +(surfaceRoughness * _surfaceRoughnessMod);
 
 	state->SetScore(score);
 }
@@ -270,6 +271,8 @@ void AIMain::DetermineBestMove(Brick* activeBrick)
 	int bestMoveIndex = -1;
 	float bestMoveScore = -FLT_MAX;
 	int index = -1;
+
+
 	for each (BoardState* s in _stateGraph)
 	{
 		index++;

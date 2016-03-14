@@ -63,7 +63,7 @@ Brick* _activeBrick;
 int _chromosome = 0;
 int _generation = 0;
 int _gameNumber = 0;
-int _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0, 0, 0, 0, 0 };
+int _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0, 0, 0 };
 GAMain* _GAController;
 
 //AI Variables
@@ -71,7 +71,7 @@ AIMain* _AIController;
 
 void InitAndLoad()
 {
-	srand((int)time(NULL));
+	srand((int)1234567);
 
 	//Window Variables
 	_state = GameState::Playing;
@@ -165,6 +165,7 @@ void InitAndLoad()
 
 void ResetGame()
 {
+	srand((int)1234567);
 	//Genetic Algorithm Settings
 	_gameScores[_gameNumber] = _score;
 	_gameNumber++;
