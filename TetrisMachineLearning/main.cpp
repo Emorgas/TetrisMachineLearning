@@ -63,7 +63,7 @@ Brick* _activeBrick;
 int _chromosome = 0;
 int _generation = 0;
 int _gameNumber = 0;
-int _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0, 0, 0 };
+int _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0};
 GAMain* _GAController;
 
 //AI Variables
@@ -71,7 +71,7 @@ AIMain* _AIController;
 
 void InitAndLoad()
 {
-	srand((int)1234567);
+	srand((int)time(NULL));
 
 	//Window Variables
 	_state = GameState::Playing;
@@ -146,8 +146,10 @@ void InitAndLoad()
 	_activeBrick = _nextQueue.front();
 	_nextQueue.pop();
 	_activeBrick->SpriteSetup();
-	_AIController->UpdateGameBoard(_gameBoard);
-	_AIController->GeneratePossibleMoves(_activeBrick);
+	_AIController->UpdateGameBoard(_gameBoard, *_nextQueue.front());
+	_AIController->GeneratePossibleMoves(_activeBrick, _AIController->GetCurrentState(), 0);
+	_AIController->DetermineBestMove(_activeBrick);
+
 
 	//Gameplay
 	if (_level > 1)
@@ -165,7 +167,6 @@ void InitAndLoad()
 
 void ResetGame()
 {
-	srand((int)1234567);
 	//Genetic Algorithm Settings
 	_gameScores[_gameNumber] = _score;
 	_gameNumber++;
@@ -245,15 +246,16 @@ void ResetGame()
 	_levelText.setString("Level: 1");
 	_brickCountText.setString("Box: 0\nLine: 0\nZ: 0\nS: 0\nL: 0\nJ:0 \nT: 0\n");
 	_gameOverText.setString("GAME OVER! FINAL SCORE: " + std::to_string(_score));
-	_nextText.setString("Next Piece Type: ");
+	_nextText.setString("Next Piece Type: " + std::to_string(_nextQueue.front()->GetBrickType()));
 	_generationNumberText.setString("Generation #: " + std::to_string(_generation));
 	_chromosomeNumberText.setString("Chromosome #: " + std::to_string(_chromosome));
 
 
 	_state = GameState::Playing;
 
-	_AIController->UpdateGameBoard(_gameBoard);
-	_AIController->GeneratePossibleMoves(_activeBrick);
+	_AIController->UpdateGameBoard(_gameBoard, *_nextQueue.front());
+	_AIController->GeneratePossibleMoves(_activeBrick, _AIController->GetCurrentState(), 0);
+	_AIController->DetermineBestMove(_activeBrick);
 
 
 
@@ -465,6 +467,11 @@ void Update()
 {
 	if (_state == GameState::Playing)
 	{
+		//Passing the updated game board to the AIController
+		_AIController->UpdateGameBoard(_gameBoard, *_nextQueue.front());
+		_AIController->GeneratePossibleMoves(_activeBrick, _AIController->GetCurrentState(), 0);
+		_AIController->DetermineBestMove(_activeBrick);
+
 		if (!TetrisHelper::CheckFallCollisions(_activeBrick, _gameBoard))
 		{
 			Time fallTime = _fallTimer.getElapsedTime();
@@ -513,8 +520,6 @@ void Update()
 				_brickList.emplace_back(_activeBrick);
 
 				RemoveCompletedLines();
-				//Passing the updated game board to the AIController
-				_AIController->UpdateGameBoard(_gameBoard);
 				_activeBrick = _nextQueue.front();
 				_nextQueue.pop();
 				_activeBrick->SpriteSetup();
@@ -522,7 +527,6 @@ void Update()
 				{
 					TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
 				}
-				_AIController->GeneratePossibleMoves(_activeBrick);
 			}
 		}
 		switch (_nextQueue.front()->GetBrickType())
@@ -582,7 +586,7 @@ void Draw()
 		}
 	}
 
-	/*for (int y = 0; y < BOARD_HEIGHT; y++)
+	for (int y = 0; y < BOARD_HEIGHT; y++)
 	{
 		for (int x = 0; x < BOARD_WIDTH; x++)
 		{
@@ -595,7 +599,7 @@ void Draw()
 				_window.draw(c);
 			}
 		}
-	}*/
+	}
 	_generationNumberText.setString("Generation #: " + std::to_string(_generation));
 	_chromosomeNumberText.setString("Chromosome #: " + std::to_string(_chromosome));
 	_scoreText.setString("Score: " + std::to_string(_score));

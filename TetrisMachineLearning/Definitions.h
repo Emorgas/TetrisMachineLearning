@@ -15,5 +15,8 @@
 #define GA_POPSIZE 25
 #define GA_ITERATIONS 10000
 #define GA_ELITISM 0.10f
-#define GA_MUTATION 0.10f
-#define GA_PLAYS_PER_CHROMOSME 3
+#define GA_MUTATION 0.1f
+#define GA_PLAYS_PER_CHROMOSME 1
+#define GA_NUM_OF_ALLELES 4
+
+#define AI_LOOK_AHEAD 0 //Number of moves to look ahead; 0 = examine only current move, 1 = examine current and next move, etc.

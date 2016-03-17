@@ -221,7 +221,7 @@ void TetrisHelper::HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH]
 
 void TetrisHelper::PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, int moveArray[2])
 {
-	//MoveArray represents the 3 actions available to the AI and the number of times each should be completed, they are stored in the format {rotations, left moves, right moves}
+	//MoveArray represents the 2 actions available to the AI and the number of times each should be completed, they are stored in the format {rotations, translations}
 
 	//Perform rotations
 	for (int r = 0; r < moveArray[0]; r++)

@@ -12,25 +12,27 @@ class AIMain
 private:
 	int* _score;
 	int _movementArray[2]; //{Rotations, Translation}
-	int _bestStateScore = INT_MIN;
 	bool _gameBoard[BOARD_WIDTH][BOARD_HEIGHT];
-	std::vector<BoardState*> _stateGraph;
-	float _rowsClearedMod, _closedHolesMod, _boardMaxHeightMod, _surfaceRoughnessMod;
-	Brick::BrickType _nextPiece;
+	BoardState* _currentState;
+	float _rowsClearedMod, _closedHolesMod, _boardMaxHeightMod, _landingHeightMod;
+	Brick _nextPiece;
 public:
 	AIMain(int* score); //Add setnext piece
 	~AIMain();
 	
+	BoardState* GetCurrentState() { return _currentState; }
+
 	//To be called every time a piece is locked
-	void UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]);
+	void UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], Brick nextPiece);
 
 	//Decision Methods
-	void GenerateChildren(BoardState* state, Brick* activeBrick);
-	void GeneratePossibleMoves(Brick* activeBrick);
+	void GeneratePossibleMoves(Brick* activeBrick, BoardState* state, int searchDepth);
 	void EvaluateState(BoardState* state);
 	int CalculateRowsCleared(BoardState* state);
 	int CalculateClosedHoles(BoardState* state);
-	int CalculateBoardMaxHeight(BoardState* state);
+	int CalculateLandingHeight(Brick* brick);
+	void CalculateFullCells(BoardState* state, float& heightWeightedCells, float& fullCells);
+	int CalculateBoardMaxAndMinHeight(BoardState* state, float& fMinHeight);
 	int CalculateSurfaceRoughness(BoardState* state);
 	void DetermineBestMove(Brick* activeBrick);
 

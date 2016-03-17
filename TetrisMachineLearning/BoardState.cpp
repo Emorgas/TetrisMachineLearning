@@ -1,6 +1,9 @@
 #include "BoardState.h"
 
+BoardState::BoardState()
+{
 
+}
 
 BoardState::BoardState(bool board[BOARD_WIDTH][BOARD_HEIGHT])
 {
@@ -18,5 +21,10 @@ BoardState::BoardState(bool board[BOARD_WIDTH][BOARD_HEIGHT])
 
 BoardState::~BoardState()
 {
-	//delete[] _gameBoard;
+	for each (BoardState* bs in _childStates)
+	{
+		delete bs;
+	}
+	_childStates.clear();
+	//delete _gameBoard;
 }

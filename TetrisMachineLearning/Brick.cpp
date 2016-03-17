@@ -390,6 +390,11 @@ void Brick::RotateBrick(RotationType type, bool gameBoard[BOARD_WIDTH][BOARD_HEI
 			return;
 		}
 	}
+	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+	{
+		defaultXPos[i] = spriteXBoardPos[i];
+		defaultYPos[i] = spriteYBoardPos[i];
+	}
 }
 
 void Brick::UndoRotation()

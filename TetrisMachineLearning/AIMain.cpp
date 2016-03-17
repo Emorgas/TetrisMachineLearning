@@ -6,14 +6,18 @@ AIMain::AIMain(int* score)
 	_score = score;
 	_movementArray[0] = 0;
 	_movementArray[1] = 0;
+	bool tempArray[BOARD_WIDTH][BOARD_HEIGHT] = { false };
+	_currentState = new BoardState(tempArray);
 }
 
 AIMain::~AIMain()
 {
 }
 
-void AIMain::UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
+void AIMain::UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], Brick nextPiece)
 {
+	_nextPiece = nextPiece;
+	_nextPiece.SpriteSetup();
 	for (int h = 0; h < BOARD_HEIGHT; h++)
 	{
 		for (int w = 0; w < BOARD_WIDTH; w++)
@@ -21,96 +25,102 @@ void AIMain::UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT])
 			_gameBoard[w][h] = gameBoard[w][h];
 		}
 	}
-	for each (BoardState* b in _stateGraph)
+
+	for each (BoardState* b in _currentState->GetChildStates())
 	{
 		delete b;
 	}
-	_stateGraph.clear();
+	//delete _currentState;
+	_currentState = new BoardState(_gameBoard);
 	_movementArray[0] = 0;
 	_movementArray[1] = 0;
 }
 
-void AIMain::GenerateChildren(BoardState* state, Brick* activeBrick)
+void AIMain::GeneratePossibleMoves(Brick* activeBrick, BoardState* state, int searchDepth)
 {
-
-
-}
-
-void AIMain::GeneratePossibleMoves(Brick* activeBrick)
-{
-	int maxRots = 4;
-	if (activeBrick->GetBrickType() == Brick::BrickType::Box)
+	if (searchDepth <= AI_LOOK_AHEAD)
 	{
-		maxRots = 1;
-	}
-	for (int rot = 0; rot < maxRots; rot++)
-	{
-		BoardState* temp = new BoardState(_gameBoard);
-		temp->SetRotations(rot);
-		int trans = 0;
-		while (TetrisHelper::CanBrickMoveLeft(activeBrick, _gameBoard))
+		int maxRots = 4;
+		if (activeBrick->GetBrickType() == Brick::BrickType::Box)
 		{
-			TetrisHelper::MoveBrickLeft(activeBrick, _gameBoard); //At the beginning of a rotation we move the brick to the left
-			trans--;
+			maxRots = 1;
 		}
-		//Perform drop for leftmost position;
-		TetrisHelper::HardDropBrick(activeBrick, temp->GetBoard(), _score, false);
-		temp->SetTranslation(trans);
-		for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+		for (int rot = 0; rot < maxRots; rot++)
 		{
-			temp->GetBoard()[activeBrick->GetSpriteXPos(i)][activeBrick->GetSpriteYPos(i)] = true;
-		}
-		_stateGraph.emplace_back(temp);
-		activeBrick->ResetYPos();
-
-		//Begin looping through all positions one step right at a time
-		while (TetrisHelper::CanBrickMoveRight(activeBrick, _gameBoard))
-		{
-			//Move the brick one step to the right
-			TetrisHelper::MoveBrickRight(activeBrick, _gameBoard);
-			trans++;
-			//setup new board state for the graph
-			temp = new BoardState(_gameBoard);
+			BoardState* temp = new BoardState(state->GetBoard());
 			temp->SetRotations(rot);
-			temp->SetTranslation(trans);
-			//Perform 'false' hard drop
+			int trans = 0;
+			if (rot > 0)
+			{
+				activeBrick->RotateBrick(Brick::RotationType::Clockwise, state->GetBoard());
+			}
+			while (TetrisHelper::CanBrickMoveLeft(activeBrick, state->GetBoard()))
+			{
+				TetrisHelper::MoveBrickLeft(activeBrick, state->GetBoard()); //At the beginning of a rotation we move the brick to the left
+				trans--;
+			}
+			//Perform drop for leftmost position;
 			TetrisHelper::HardDropBrick(activeBrick, temp->GetBoard(), _score, false);
-			//For each mino in the brick set the position on the board stored in temp
+			temp->SetLandingHeight(CalculateLandingHeight(activeBrick));
+			temp->SetTranslation(trans);
 			for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
 			{
 				temp->GetBoard()[activeBrick->GetSpriteXPos(i)][activeBrick->GetSpriteYPos(i)] = true;
 			}
-			//Place temp into the array
-			_stateGraph.emplace_back(temp);
-			//reset the Y position of the active brick
+			state->AddChildState(temp);
+			GeneratePossibleMoves(&_nextPiece, temp, searchDepth + 1);
 			activeBrick->ResetYPos();
-		}
-		activeBrick->ResetXPos();
-	}
 
+			//Begin looping through all positions one step right at a time
+			while (TetrisHelper::CanBrickMoveRight(activeBrick, state->GetBoard()))
+			{
+				//Move the brick one step to the right
+				TetrisHelper::MoveBrickRight(activeBrick, state->GetBoard());
+				trans++;
+				//setup new board state for the graph
+				temp = new BoardState(state->GetBoard());
+				temp->SetRotations(rot);
+				temp->SetTranslation(trans);
+				//Perform 'false' hard drop
+				TetrisHelper::HardDropBrick(activeBrick, temp->GetBoard(), _score, false);
+				temp->SetLandingHeight(CalculateLandingHeight(activeBrick));
+				//For each mino in the brick set the position on the board stored in temp
+				for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+				{
+					temp->GetBoard()[activeBrick->GetSpriteXPos(i)][activeBrick->GetSpriteYPos(i)] = true;
+				}
+				//Place temp into the array
+				state->AddChildState(temp);
+				GeneratePossibleMoves(&_nextPiece, temp, searchDepth + 1);
+				//reset the Y position of the active brick
+				activeBrick->ResetYPos();
+			}
+			activeBrick->ResetXPos();
+		}
+		activeBrick->RotateBrick(Brick::RotationType::Clockwise, state->GetBoard()); //Rotate the brick back to the north facing position
+	}
 	//std::cout << "Number of possible moves: " << _stateGraph.size() << std::endl;
 
-	DetermineBestMove(activeBrick);
+	//DetermineBestMove(activeBrick);
 }
 
 void AIMain::EvaluateState(BoardState* state)
 {
-	float rowsCleared, closedHoles, boardMaxHeight, surfaceRoughness;
+	float rowsCleared, closedHoles, boardMaxHeight, pieceLandingHeight, boardMinHeight;
 
 	rowsCleared = CalculateRowsCleared(state);
 
 	closedHoles = CalculateClosedHoles(state);
 
-	boardMaxHeight = CalculateBoardMaxHeight(state);
+	pieceLandingHeight = state->GetLandingHeight();
 
-	surfaceRoughness = CalculateSurfaceRoughness(state);
+	boardMaxHeight = CalculateBoardMaxAndMinHeight(state, boardMinHeight);
 
-	float score = (rowsCleared * _rowsClearedMod) + (boardMaxHeight * _boardMaxHeightMod) +(closedHoles * _closedHolesMod) +(boardMaxHeight * _boardMaxHeightMod);// +(surfaceRoughness * _surfaceRoughnessMod);
+	float score = (rowsCleared * _rowsClearedMod) + (closedHoles * _closedHolesMod) +
+		(boardMaxHeight * _boardMaxHeightMod) + (pieceLandingHeight * _landingHeightMod);
 
 	state->SetScore(score);
 }
-
-
 
 int AIMain::CalculateRowsCleared(BoardState* state)
 {
@@ -216,24 +226,65 @@ int AIMain::CalculateClosedHoles(BoardState* state)
 	return numberOfClosedHoles;
 }
 
-int AIMain::CalculateBoardMaxHeight(BoardState* state)
+
+int AIMain::CalculateLandingHeight(Brick* brick)
 {
+	int lowestSpritePos = 20;
+	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
+	{
+		if (brick->GetSpriteYPos(i) < lowestSpritePos)
+		{
+			lowestSpritePos = brick->GetSpriteYPos(i);
+		}
+	}
+	return lowestSpritePos;
+}
+void AIMain::CalculateFullCells(BoardState* state, float& heightWeightedCells, float& fullCells)
+{
+	heightWeightedCells = 0;
+	fullCells = 0;
+	for (int y = 0; y < BOARD_HEIGHT; y++)
+	{
+		for (int x = 0; x < BOARD_WIDTH; x++)
+		{
+			if (state->GetBoard()[x][y] == true)
+			{
+				fullCells += 1;
+				heightWeightedCells += y;
+			}
+		}
+	}
+}
+
+int AIMain::CalculateBoardMaxAndMinHeight(BoardState* state, float& fMinHeight)
+{
+	int columnHeights[BOARD_WIDTH] = { 0 };
 	int maxHeight = 0;
+	int minHeight = BOARD_HEIGHT;
 
 	for (int y = 0; y < BOARD_HEIGHT; y++)
 	{
 		for (int x = 0; x < BOARD_WIDTH; x++)
 		{
-			/*y + 1 because programtically the bottom row is 0,
-			however it should be considered row 1 for evaluation purposes
-			as the height of any placed block must be at least 1*/
-			if (state->GetBoard()[x][y] == true && y + 1 > maxHeight) 
+			if (state->GetBoard()[x][y] == true)
 			{
-				maxHeight = y + 1;
+				columnHeights[x] = y + 1;
 			}
 		}
 	}
 
+	for (int i = 0; i < BOARD_WIDTH; i++)
+	{
+		if (columnHeights[i] > maxHeight)
+		{
+			maxHeight = columnHeights[i];
+		}
+		if (columnHeights[i] < minHeight)
+		{
+			minHeight = columnHeights[i];
+		}
+	}
+	fMinHeight = minHeight;
 	return maxHeight;
 }
 
@@ -271,12 +322,26 @@ void AIMain::DetermineBestMove(Brick* activeBrick)
 	int bestMoveIndex = -1;
 	float bestMoveScore = -FLT_MAX;
 	int index = -1;
+	float bestChildScore = -FLT_MAX;
 
-
-	for each (BoardState* s in _stateGraph)
+	for each (BoardState* s in _currentState->GetChildStates())
 	{
 		index++;
 		EvaluateState(s);
+		bestChildScore = -FLT_MAX;
+		for each (BoardState* cs in s->GetChildStates())
+		{
+			EvaluateState(cs);
+			if (cs->GetScore() > bestChildScore)
+			{
+				bestChildScore = cs->GetScore();
+			}
+		}
+		if (bestChildScore != -FLT_MAX)
+		{
+			s->AddScore(bestChildScore);
+		}
+
 		if (s->GetScore() > bestMoveScore)
 		{
 			bestMoveScore = s->GetScore();
@@ -284,8 +349,8 @@ void AIMain::DetermineBestMove(Brick* activeBrick)
 		}
 	}
 
-	_movementArray[0] = _stateGraph.at(bestMoveIndex)->GetRotations();
-	_movementArray[1] = _stateGraph.at(bestMoveIndex)->GetTranslation();
+	_movementArray[0] = _currentState->GetChildStates().at(bestMoveIndex)->GetRotations();
+	_movementArray[1] = _currentState->GetChildStates().at(bestMoveIndex)->GetTranslation();
 
 	TetrisHelper::PerformMoveSequence(activeBrick, _gameBoard, _score, _movementArray);
 }
@@ -295,5 +360,5 @@ void AIMain::SetEvaluationModifiers(float values[4])
 	_rowsClearedMod = values[0];
 	_closedHolesMod = values[1];
 	_boardMaxHeightMod = values[2];
-	_surfaceRoughnessMod = values[3];
+	_landingHeightMod = values[3];
 }
