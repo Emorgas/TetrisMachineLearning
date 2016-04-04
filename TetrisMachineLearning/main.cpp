@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <queue>
+#include <string>
+#include <memory>
 
 //Self Includes
 #include "Definitions.h"
@@ -63,8 +65,9 @@ Brick* _activeBrick;
 int _chromosome = 0;
 int _generation = 0;
 int _gameNumber = 0;
-int _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0};
+int _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0, 0, 0 };
 GAMain* _GAController;
+std::string _populationFilename;
 
 //AI Variables
 AIMain* _AIController;
@@ -137,10 +140,51 @@ void InitAndLoad()
 
 	_AIController = new AIMain(&_score);
 
-	_GAController = new GAMain();
-	_GAController->InitialisePopulation();
 
-	_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles);
+	//Mode Setup
+	int choice = 0;
+	while (choice != -1)
+	{
+		std::cout << "Please Choose a mode \n1) Training from Scratch \n2) Training from File \n3) Play from file without Training" << std::endl;
+
+		std::cin >> choice;
+		if (choice == 1)
+		{
+			std::cout << "Please enter a filename for the new Genetic Data Set: ";
+			std::cin >> _populationFilename;
+
+			_GAController = new GAMain(_populationFilename);
+			_GAController->InitialisePopulation();
+
+			_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles);
+			choice = -1;
+		}
+		else if (choice == 2)
+		{
+			std::cout << "Enter the name of the file to load from: ";
+			std::cin >> _populationFilename;
+			_GAController = new GAMain(_populationFilename);
+			_GAController->InitialisePopulationFromFile(_populationFilename);
+
+			_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles);
+			_generation = _GAController->GetGeneration();
+			choice = -1;
+		}
+		else if (choice == 3)
+		{
+			std::cout << "Enter the name of the file to load from: ";
+			std::cin >> _populationFilename;
+			std::cout << "Please enter the Generation number: ";
+			std::cin >> _generation;
+			std::cout << "Please enter the chromosome number: ";
+			std::cin >> _chromosome;
+			_GAController = new GAMain(_populationFilename);
+			_GAController->InitialisePopulationFromFile(_populationFilename, _generation);
+
+			_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles);
+			choice = -1;
+		}
+	}
 
 	TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
 	_activeBrick = _nextQueue.front();
@@ -181,7 +225,9 @@ void ResetGame()
 		temp /= GA_PLAYS_PER_CHROMOSME;
 		_GAController->SetChromosomeFitness(_chromosome, temp); //Store the average value as the fitness of this chromosome
 		std::cout << "Chromosome: " << _chromosome << " Average Score: " << temp << std::endl;
-
+		std::ofstream out(_populationFilename + "Statistics.txt", std::ios::app);
+		out << temp << " ";
+		out.close();
 		_chromosome++;											//Move on to the next chromosome
 		for (int i = 0; i < GA_PLAYS_PER_CHROMOSME; i++)
 		{
@@ -194,7 +240,10 @@ void ResetGame()
 			_GAController->BeginNewGeneration();				//Call evaluate population which will then proceed to compare all chromosomes
 																//And generate children from the parent generation
 			_chromosome = 0;
-			_generation++;										//Reset the chromosome counter and increment the generation number
+			_generation = _GAController->GetGeneration();		//Reset the chromosome counter and increment the generation number
+			std::ofstream out(_populationFilename + "Statistics.txt", std::ios::app);
+			out << std::endl << "G" << _generation << std::endl;
+
 		}
 		_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles); //Set the Evaluation Modifiers from the new chromosome
 	}
@@ -223,12 +272,21 @@ void ResetGame()
 	}
 	_linesRemoved = 0;
 
-	for each (Brick* b in _brickList)
+	for (int i = 0; i < _brickList.size(); i++)
 	{
-		delete b;
+		delete _brickList.at(i);
 	}
 
 	_brickList.clear();
+
+	for (int i = 0; i < _nextQueue.size(); i++)
+	{
+		delete _nextQueue.front();
+		_nextQueue.pop();
+	}
+
+	delete _activeBrick;
+
 	std::queue<Brick*> empty;
 	std::swap(_nextQueue, empty);
 	bool _checkLockTime = false;
@@ -453,6 +511,10 @@ void RemoveCompletedLines()
 
 bool CheckForGameOver()
 {
+	if (_lines >= GA_LINE_LIMIT)
+	{
+		return true;
+	}
 	for (int i = 0; i < NUMBER_OF_MINOS_IN_BRICK; i++)
 	{
 		if (_activeBrick->GetSpriteYPos(i) < BOARD_SKYLINE)
@@ -467,6 +529,7 @@ void Update()
 {
 	if (_state == GameState::Playing)
 	{
+
 		//Passing the updated game board to the AIController
 		_AIController->UpdateGameBoard(_gameBoard, *_nextQueue.front());
 		_AIController->GeneratePossibleMoves(_activeBrick, _AIController->GetCurrentState(), 0);

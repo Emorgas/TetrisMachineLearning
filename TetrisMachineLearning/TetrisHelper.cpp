@@ -149,9 +149,9 @@ void TetrisHelper::PopulateBrickQueue(std::queue<Brick*>* queue, Texture* tex)
 				break;
 			}
 		}
-		for each (Brick* b in tempQueue)
+		for (int i = 0; i < tempQueue.size(); i++)
 		{
-			//delete b;
+			//delete tempQueue.at(i);
 		}
 		tempQueue.erase(iter);
 	}
