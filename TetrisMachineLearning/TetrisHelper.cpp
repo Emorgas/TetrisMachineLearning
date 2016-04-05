@@ -8,7 +8,7 @@ float TetrisHelper::_defaultBrickFallTime;
 float TetrisHelper::_autoRepeatTime = 0.3f;
 
 
-void TetrisHelper::HandleInput(Event* gameEvent, Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, Clock* gameTime)
+void TetrisHelper::HandleInput(Event* gameEvent, Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], unsigned long* score, Clock* gameTime)
 {
 	Keyboard::Key keyPressed = (Keyboard::Key)gameEvent->key.code;
 	Time repeatTime = gameTime->getElapsedTime();
@@ -204,7 +204,7 @@ void TetrisHelper::MoveBrickRight(Brick* activeBrick, bool gameBoard[BOARD_WIDTH
 	}
 }
 //Last parameter allows a hard drop to be simulated without locking the piece; the default value is true so a 'false' hard drop must be specified
-void TetrisHelper::HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, bool isTrueDrop)
+void TetrisHelper::HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], unsigned long* score, bool isTrueDrop)
 {
 	int lineCounter = 0;
 	while (CheckFallCollisions(activeBrick, gameBoard) != true)
@@ -219,7 +219,7 @@ void TetrisHelper::HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH]
 	}
 }
 
-void TetrisHelper::PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, int moveArray[2])
+void TetrisHelper::PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], unsigned long* score, int moveArray[2])
 {
 	//MoveArray represents the 2 actions available to the AI and the number of times each should be completed, they are stored in the format {rotations, translations}
 

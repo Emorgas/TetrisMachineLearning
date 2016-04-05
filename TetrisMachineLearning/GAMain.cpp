@@ -125,7 +125,7 @@ void GAMain::BeginNewGeneration()
 
 void GAMain::OutputStatisticsToFile()
 {
-	std::ofstream out(_populationDataFilename + "Statistics.txt", std::ios::app);
+	std::ofstream out(_populationDataFilename + "Statistics_E.txt", std::ios::app);
 	out << std::endl << "Generation: " << _generation << " Top Score was: " << _population.at(GA_POPSIZE - 1)->fitness << std::endl;
 	out << "Generation: " << _generation << " Lowest Score was: " << _population.at(0)->fitness << std::endl;
 	out.close();
@@ -137,8 +137,8 @@ void GAMain::GenerateChildren()
 
 	while (newPop.size() < GA_POPSIZE - 1)
 	{
-		Chromosome* parent1 = LinearRankSelection();
-		Chromosome* parent2 = LinearRankSelection();
+		Chromosome* parent1 = TournamentSelection();
+		Chromosome* parent2 = TournamentSelection();
 
 		newPop.emplace_back(SinglePointCrossover(parent1, parent2));
 	}
@@ -176,17 +176,28 @@ void GAMain::OutputGenerationToFile()
 
 Chromosome* GAMain::UniformCrossover(Chromosome* p1, Chromosome* p2)
 {
-	Chromosome* child = new Chromosome();
+	Chromosome* temp = new Chromosome();
 	int alelleCrossover = rand() % GA_NUM_OF_ALLELES;
 
 	for (int i = 0; i < GA_NUM_OF_ALLELES; i++)
-		child->alleles[i] = p1->alleles[i];
+		temp->alleles[i] = p1->alleles[i];
 
-	child->alleles[alelleCrossover] = p2->alleles[alelleCrossover];
+	temp->alleles[alelleCrossover] = p2->alleles[alelleCrossover];
 	alelleCrossover = rand() % GA_NUM_OF_ALLELES;
-	child->alleles[alelleCrossover] = p2->alleles[alelleCrossover];
-	child->fitness = 0;
-	return child;
+	temp->alleles[alelleCrossover] = p2->alleles[alelleCrossover];
+	temp->fitness = 0;
+
+	double mutationChance;
+	for (int i = 0; i < GA_NUM_OF_ALLELES; i++)
+	{
+		mutationChance = ((double)rand() / (RAND_MAX));
+		if (mutationChance <= GA_MUTATION)
+		{
+			temp->alleles[i] = (rand() % 200 - 100);
+		}
+	}
+
+	return temp;
 }
 
 Chromosome* GAMain::RandomCrossover(Chromosome* p1, Chromosome* p2)
@@ -204,12 +215,14 @@ Chromosome* GAMain::RandomCrossover(Chromosome* p1, Chromosome* p2)
 	}
 	temp->fitness = 0;
 
-	int mutationChance = rand() % (int)(1.0 / GA_MUTATION);
-	if (mutationChance == 0)
+	double mutationChance;
+	for (int i = 0; i < GA_NUM_OF_ALLELES; i++)
 	{
-		std::cout << "Mutaton Occurred!" << std::endl;
-		int alleleToMutate = rand() % 5;
-		temp->alleles[alleleToMutate] = (rand() % 200 - 100);
+		mutationChance = ((double)rand() / (RAND_MAX));
+		if (mutationChance <= GA_MUTATION)
+		{
+			temp->alleles[i] = (rand() % 200 - 100);
+		}
 	}
 
 	return temp;
@@ -233,13 +246,41 @@ Chromosome* GAMain::SinglePointCrossover(Chromosome* p1, Chromosome* p2)
 	}
 	temp->fitness = 0;
 
-	int mutationChance = rand() % (int)(1.0 / GA_MUTATION);
-	if (mutationChance == 0)
+	double mutationChance;
+	for (int i = 0; i < GA_NUM_OF_ALLELES; i++)
 	{
-		int alleleToMutate = rand() % 5;
-		temp->alleles[alleleToMutate] = (rand() % 200 - 100);
+		mutationChance = ((double)rand() / (RAND_MAX));
+		if (mutationChance <= GA_MUTATION)
+		{
+			temp->alleles[i] = (rand() % 200 - 100);
+		}
 	}
+
 	return temp;
+}
+
+Chromosome* GAMain::TournamentSelection()
+{
+	std::vector<Chromosome*> tournamentMembers;
+	while (tournamentMembers.size() < GA_TOURNAMENT_SIZE)
+	{
+		tournamentMembers.emplace_back(_population.at((rand() % GA_POPSIZE)));
+	}
+
+	int bestMemberIndex = -1;
+	int bestMemberFitness = -1;
+	int index = 0;
+	for each (Chromosome* c in tournamentMembers)
+	{
+		if (c->fitness > bestMemberFitness)
+		{
+			bestMemberFitness = c->fitness;
+			bestMemberIndex = index;
+		}
+		index++;
+	}
+
+	return tournamentMembers.at(bestMemberIndex);
 }
 
 Chromosome* GAMain::LinearRankSelection()

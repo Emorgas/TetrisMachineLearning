@@ -1,7 +1,7 @@
 #include "AIMain.h"
 
 
-AIMain::AIMain(int* score)
+AIMain::AIMain(unsigned long* score)
 {
 	_score = score;
 	_movementArray[0] = 0;
@@ -25,19 +25,12 @@ void AIMain::UpdateGameBoard(bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], Brick ne
 			_gameBoard[w][h] = gameBoard[w][h];
 		}
 	}
-	std::vector<int> test;
-	int i = 0;
-	test.emplace_back(i);
-	std::cout << "Num: " << test.size() << std::endl;
-	test.clear();
-	std::cout << "Num: " << test.size() << std::endl;
 
 	if (_currentState->GetChildStates().size() > 0)
 	{
 		_currentState->ClearAllChildStates();
 	}
-	std::cout << "Number of elements in currentState: " << _currentState->GetChildStates().size() << std::endl;
-	//delete _currentState;
+
 	_currentState->Setup(_gameBoard);
 	_movementArray[0] = 0;
 	_movementArray[1] = 0;

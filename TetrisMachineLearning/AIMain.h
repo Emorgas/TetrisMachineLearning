@@ -10,14 +10,14 @@ using namespace sf;
 class AIMain
 {
 private:
-	int* _score;
+	unsigned long* _score;
 	int _movementArray[2]; //{Rotations, Translation}
 	bool _gameBoard[BOARD_WIDTH][BOARD_HEIGHT];
 	BoardState* _currentState;
 	float _rowsClearedMod, _closedHolesMod, _boardMaxHeightMod, _landingHeightMod, _surfaceRoughnessMod;
 	Brick _nextPiece;
 public:
-	AIMain(int* score); //Add setnext piece
+	AIMain(unsigned long* score); //Add setnext piece
 	~AIMain();
 	
 	BoardState* GetCurrentState() { return _currentState; }

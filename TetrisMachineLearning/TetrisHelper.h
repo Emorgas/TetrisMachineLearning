@@ -19,7 +19,7 @@ public:
 	static float _brickFallTime;
 	static float _defaultBrickFallTime;
 
-	static void HandleInput(Event* gameEvent, Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, Clock* gameTime);
+	static void HandleInput(Event* gameEvent, Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], unsigned long* score, Clock* gameTime);
 
 	static bool CheckFallCollisions(Brick* activeBrick, bool gameboard[BOARD_WIDTH][BOARD_HEIGHT]);
 
@@ -38,10 +38,10 @@ public:
 
 	static void MoveBrickRight(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT]);
 
-	static void HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, bool isTrueDrop = true);
+	static void HardDropBrick(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], unsigned long* score, bool isTrueDrop = true);
 
 	//AI Control Method
-	static void PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], int* score, int moveArray[2]);
+	static void PerformMoveSequence(Brick* activeBrick, bool gameBoard[BOARD_WIDTH][BOARD_HEIGHT], unsigned long* score, int moveArray[2]);
 
 };
 

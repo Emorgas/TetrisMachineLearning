@@ -45,7 +45,7 @@ Text _chromosomeNumberText;
 
 //Gameplay Variables
 bool _gameBoard[BOARD_WIDTH][BOARD_HEIGHT];
-int _score = 0;
+unsigned long _score = 0;
 int _level = 1;
 int _lines = 0;
 int _brickCount[NUMBER_OF_BRICK_TYPES] = { 0, 0, 0, 0, 0, 0, 0 };
@@ -65,7 +65,8 @@ Brick* _activeBrick;
 int _chromosome = 0;
 int _generation = 0;
 int _gameNumber = 0;
-int _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0, 0, 0 };
+unsigned long _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0 };
+unsigned long _linesMade[GA_PLAYS_PER_CHROMOSME] = { 0 };
 GAMain* _GAController;
 std::string _populationFilename;
 
@@ -212,26 +213,27 @@ void InitAndLoad()
 void ResetGame()
 {
 	//Genetic Algorithm Settings
-	_gameScores[_gameNumber] = _score;
+	//_gameScores[_gameNumber] = _score;
+	_linesMade[_gameNumber] = _lines;
 	_gameNumber++;
 	if (_gameNumber >= GA_PLAYS_PER_CHROMOSME)					 //If we have played enough games with this chromosome
 	{
 		_gameNumber = 0;
-		int temp = 0;
+		unsigned long temp = 0;
 		for (int i = 0; i < GA_PLAYS_PER_CHROMOSME; i++)
 		{
-			temp += _gameScores[i];					 //Sum and average the scores of each game played
+			temp += _linesMade[i];					 //Sum and average the scores of each game played
 		}
 		temp /= GA_PLAYS_PER_CHROMOSME;
 		_GAController->SetChromosomeFitness(_chromosome, temp); //Store the average value as the fitness of this chromosome
-		std::cout << "Chromosome: " << _chromosome << " Average Score: " << temp << std::endl;
+		std::cout << "Chromosome: " << _chromosome << " Average Lines Made: " << temp << std::endl;
 		std::ofstream out(_populationFilename + "Statistics.txt", std::ios::app);
 		out << temp << " ";
 		out.close();
 		_chromosome++;											//Move on to the next chromosome
 		for (int i = 0; i < GA_PLAYS_PER_CHROMOSME; i++)
 		{
-			_gameScores[i] = 0;
+			_linesMade[i] = 0;
 		}
 
 		if (_chromosome >= GA_POPSIZE)							//if we have played all chromosomes in the population
