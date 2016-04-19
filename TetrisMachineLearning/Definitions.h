@@ -19,5 +19,5 @@
 #define GA_PLAYS_PER_CHROMOSME 1
 #define GA_NUM_OF_ALLELES 5
 #define GA_LINE_LIMIT 500000
-#define GA_TOURNAMENT_SIZE 10
+#define GA_TOURNAMENT_SIZE 2
 #define AI_LOOK_AHEAD 0 //Number of moves to look ahead; 0 = examine only current move, 1 = examine current and next move, etc.

@@ -60,6 +60,7 @@ Clock _fallTimer;
 Clock _repeatTimer;
 bool _checkLockTime = false;
 Brick* _activeBrick;
+int _generationSeed;
 
 //Genetic Algorithm Variables
 int _chromosome = 0;
@@ -76,7 +77,7 @@ AIMain* _AIController;
 void InitAndLoad()
 {
 	srand((int)time(NULL));
-
+	_generationSeed = (int)time(NULL);
 	//Window Variables
 	_state = GameState::Playing;
 	_videoMode.height = SCREEN_HEIGHT;
@@ -186,7 +187,7 @@ void InitAndLoad()
 			choice = -1;
 		}
 	}
-
+	srand(_generationSeed);
 	TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
 	_activeBrick = _nextQueue.front();
 	_nextQueue.pop();
@@ -238,13 +239,14 @@ void ResetGame()
 
 		if (_chromosome >= GA_POPSIZE)							//if we have played all chromosomes in the population
 		{
-
+			srand((int)time(NULL));
 			_GAController->BeginNewGeneration();				//Call evaluate population which will then proceed to compare all chromosomes
 																//And generate children from the parent generation
 			_chromosome = 0;
 			_generation = _GAController->GetGeneration();		//Reset the chromosome counter and increment the generation number
 			std::ofstream out(_populationFilename + "Statistics.txt", std::ios::app);
 			out << std::endl << "G" << _generation << std::endl;
+			_generationSeed = (int)time(NULL);
 
 		}
 		_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles); //Set the Evaluation Modifiers from the new chromosome
@@ -293,6 +295,7 @@ void ResetGame()
 	std::swap(_nextQueue, empty);
 	bool _checkLockTime = false;
 
+	srand(_generationSeed);
 	TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
 	_activeBrick = _nextQueue.front();
 	_nextQueue.pop();

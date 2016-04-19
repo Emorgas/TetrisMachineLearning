@@ -29,7 +29,6 @@ public:
 	void OutputStatisticsToFile();
 	void OutputGenerationToFile();
 	Chromosome* UniformCrossover(Chromosome* p1, Chromosome* p2);
-	Chromosome* RandomCrossover(Chromosome* p1, Chromosome* p2);
 	Chromosome* SinglePointCrossover(Chromosome* p1, Chromosome* p2);
 	Chromosome* TournamentSelection();
 	Chromosome* LinearRankSelection();
