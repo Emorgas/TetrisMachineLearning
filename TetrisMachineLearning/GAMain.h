@@ -17,10 +17,12 @@ class GAMain
 {
 private:
 	int _generation = 0;
+	int _selectionMethod = 0;
+	int _crossoverMethod = 0;
 	std::vector<Chromosome*> _population;
 	std::string _populationDataFilename;
 public:
-	GAMain(std::string filename);
+	GAMain(std::string filename, int crossover, int selection);
 	~GAMain();
 	void InitialisePopulation();
 	void InitialisePopulationFromFile(std::string filename, int generation = -1);
@@ -28,7 +30,7 @@ public:
 	void GenerateChildren();
 	void OutputStatisticsToFile();
 	void OutputGenerationToFile();
-	Chromosome* UniformCrossover(Chromosome* p1, Chromosome* p2);
+	Chromosome* RandomCrossover(Chromosome* p1, Chromosome* p2);
 	Chromosome* SinglePointCrossover(Chromosome* p1, Chromosome* p2);
 	Chromosome* TournamentSelection();
 	Chromosome* LinearRankSelection();

@@ -2,9 +2,11 @@
 
 
 
-GAMain::GAMain(std::string filename)
+GAMain::GAMain(std::string filename, int crossover, int selection)
 {
 	_populationDataFilename = filename;
+	_crossoverMethod = crossover;
+	_selectionMethod = selection;
 }
 
 
@@ -134,13 +136,30 @@ void GAMain::OutputStatisticsToFile()
 void GAMain::GenerateChildren()
 {
 	std::vector<Chromosome*> newPop;
-
+	Chromosome* parent1 = _population.at(0); //Initialising the pointers
+	Chromosome* parent2 = _population.at(0);
 	while (newPop.size() < GA_POPSIZE)
 	{
-		Chromosome* parent1 = TournamentSelection();
-		Chromosome* parent2 = TournamentSelection();
 
-		newPop.emplace_back(SinglePointCrossover(parent1, parent2));
+		if (_selectionMethod == 1)
+		{
+			 parent1 = TournamentSelection();
+			 parent2 = TournamentSelection();
+		}
+		else if (_selectionMethod == 2)
+		{
+			parent1 = LinearRankSelection();
+			parent2 = LinearRankSelection();
+		}
+
+		if (_crossoverMethod == 1)
+		{
+			newPop.emplace_back(RandomCrossover(parent1, parent2));
+		}
+		else if (_crossoverMethod == 2)
+		{
+			newPop.emplace_back(SinglePointCrossover(parent1, parent2));
+		}
 	}
 
 	for each (Chromosome* c in _population)
@@ -168,16 +187,16 @@ void GAMain::OutputGenerationToFile()
 	out.close();
 }
 
-Chromosome* GAMain::UniformCrossover(Chromosome* p1, Chromosome* p2)
+Chromosome* GAMain::RandomCrossover(Chromosome* p1, Chromosome* p2)
 {
 	Chromosome* temp = new Chromosome();
 
 	for (int i = 0; i < GA_NUM_OF_ALLELES; i++)
 	{
-		int parentToUse = (int)rand() % 2;
-		if (parentToUse = 0)
+		int parentToUse = rand() % 2;
+		if (parentToUse == 0)
 			temp->alleles[i] = p1->alleles[i];
-		else if (parentToUse = 1)
+		else if (parentToUse == 1)
 			temp->alleles[i] = p2->alleles[i];
 		else
 			std::cout << "Error in uniform crossover!!" << std::endl;

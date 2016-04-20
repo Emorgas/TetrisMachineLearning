@@ -70,6 +70,9 @@ unsigned long _gameScores[GA_PLAYS_PER_CHROMOSME] = { 0 };
 unsigned long _linesMade[GA_PLAYS_PER_CHROMOSME] = { 0 };
 GAMain* _GAController;
 std::string _populationFilename;
+int _crossoverMethod; //1 = Random Crossover; 2 = Single Point Crossover
+int _selectionMethod; //1 = Linear Rank Selection, 2 = Tournament Selection
+bool _useFixedPieces;
 
 //AI Variables
 AIMain* _AIController;
@@ -77,7 +80,9 @@ AIMain* _AIController;
 void InitAndLoad()
 {
 	srand((int)time(NULL));
-	_generationSeed = (int)time(NULL);
+	if (_useFixedPieces == true)
+		_generationSeed = (int)time(NULL);
+
 	//Window Variables
 	_state = GameState::Playing;
 	_videoMode.height = SCREEN_HEIGHT;
@@ -150,12 +155,26 @@ void InitAndLoad()
 		std::cout << "Please Choose a mode \n1) Training from Scratch \n2) Training from File \n3) Play from file without Training" << std::endl;
 
 		std::cin >> choice;
+		if (choice == 1 || choice == 2)
+		{
+			std::cout << "Please select a crossover method \n1) Random Crossover \n2) Single Point Crossover" << std::endl;
+			std::cin >> _crossoverMethod;
+			std::cout << "Please select a selection method \n1) Tournament Selection \n2) Linear Rank Selection" << std::endl;
+			std::cin >> _selectionMethod;
+			std::cout << "Should the game pieces be fixed for each generation? \n1) Yes \n2) No" << std::endl;
+			int answer;
+			std::cin >> answer;
+			if (answer = 1)
+				_useFixedPieces = true;
+			else
+				_useFixedPieces = false;
+		}
 		if (choice == 1)
 		{
 			std::cout << "Please enter a filename for the new Genetic Data Set: ";
 			std::cin >> _populationFilename;
 
-			_GAController = new GAMain(_populationFilename);
+			_GAController = new GAMain(_populationFilename, _crossoverMethod, _selectionMethod);
 			_GAController->InitialisePopulation();
 
 			_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles);
@@ -165,7 +184,7 @@ void InitAndLoad()
 		{
 			std::cout << "Enter the name of the file to load from: ";
 			std::cin >> _populationFilename;
-			_GAController = new GAMain(_populationFilename);
+			_GAController = new GAMain(_populationFilename, _crossoverMethod, _selectionMethod);
 			_GAController->InitialisePopulationFromFile(_populationFilename);
 
 			_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles);
@@ -180,14 +199,17 @@ void InitAndLoad()
 			std::cin >> _generation;
 			std::cout << "Please enter the chromosome number: ";
 			std::cin >> _chromosome;
-			_GAController = new GAMain(_populationFilename);
+			_GAController = new GAMain(_populationFilename, _crossoverMethod, _selectionMethod);
 			_GAController->InitialisePopulationFromFile(_populationFilename, _generation);
 
 			_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles);
 			choice = -1;
 		}
 	}
-	srand(_generationSeed);
+
+	if (_useFixedPieces == true)
+		srand(_generationSeed);
+
 	TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
 	_activeBrick = _nextQueue.front();
 	_nextQueue.pop();
@@ -239,14 +261,19 @@ void ResetGame()
 
 		if (_chromosome >= GA_POPSIZE)							//if we have played all chromosomes in the population
 		{
-			srand((int)time(NULL));
+
+			if (_useFixedPieces == true)
+				srand((int)time(NULL));
+
 			_GAController->BeginNewGeneration();				//Call evaluate population which will then proceed to compare all chromosomes
 																//And generate children from the parent generation
 			_chromosome = 0;
 			_generation = _GAController->GetGeneration();		//Reset the chromosome counter and increment the generation number
 			std::ofstream out(_populationFilename + "Statistics.txt", std::ios::app);
 			out << std::endl << "G" << _generation << std::endl;
-			_generationSeed = (int)time(NULL);
+
+			if (_useFixedPieces == true)
+				_generationSeed = (int)time(NULL);
 
 		}
 		_AIController->SetEvaluationModifiers(_GAController->GetChromosome(_chromosome)->alleles); //Set the Evaluation Modifiers from the new chromosome
@@ -295,7 +322,9 @@ void ResetGame()
 	std::swap(_nextQueue, empty);
 	bool _checkLockTime = false;
 
-	srand(_generationSeed);
+	if (_useFixedPieces == true)
+		srand(_generationSeed);
+
 	TetrisHelper::PopulateBrickQueue(&_nextQueue, &_minoTexture);
 	_activeBrick = _nextQueue.front();
 	_nextQueue.pop();
@@ -654,20 +683,6 @@ void Draw()
 		}
 	}
 
-	for (int y = 0; y < BOARD_HEIGHT; y++)
-	{
-		for (int x = 0; x < BOARD_WIDTH; x++)
-		{
-			if (_gameBoard[x][y] == true)
-			{
-				CircleShape c;
-				c.setPosition((x + BOARD_X_OFFSET) * 36.0f, 684 - (y * 36.0f));
-				c.setRadius(12.0);
-				c.setFillColor(Color::Red);
-				_window.draw(c);
-			}
-		}
-	}
 	_generationNumberText.setString("Generation #: " + std::to_string(_generation));
 	_chromosomeNumberText.setString("Chromosome #: " + std::to_string(_chromosome));
 	_scoreText.setString("Score: " + std::to_string(_score));
