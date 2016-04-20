@@ -233,6 +233,12 @@ void InitAndLoad()
 	}
 }
 
+extern void QuitProgram()
+{
+	_window.close();
+}
+
+
 void ResetGame()
 {
 	//Genetic Algorithm Settings
@@ -261,10 +267,13 @@ void ResetGame()
 
 		if (_chromosome >= GA_POPSIZE)							//if we have played all chromosomes in the population
 		{
-
+			if (_generation == GA_ITERATIONS)
+			{
+				QuitProgram();
+			}
 			if (_useFixedPieces == true)
 				srand((int)time(NULL));
-
+			
 			_GAController->BeginNewGeneration();				//Call evaluate population which will then proceed to compare all chromosomes
 																//And generate children from the parent generation
 			_chromosome = 0;
@@ -351,11 +360,6 @@ void ResetGame()
 
 
 
-}
-
-extern void QuitProgram()
-{
-	_window.close();
 }
 
 void HandleEvents()
