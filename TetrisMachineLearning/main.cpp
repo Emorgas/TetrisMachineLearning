@@ -279,7 +279,7 @@ void ResetGame()
 			_chromosome = 0;
 			_generation = _GAController->GetGeneration();		//Reset the chromosome counter and increment the generation number
 			std::ofstream out(_populationFilename + "Statistics.txt", std::ios::app);
-			out << std::endl << "G" << _generation << std::endl;
+			out << std::endl;// << "G" << _generation << std::endl;
 
 			if (_useFixedPieces == true)
 				_generationSeed = (int)time(NULL);
